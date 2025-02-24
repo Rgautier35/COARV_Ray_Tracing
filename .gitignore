@@ -1,6 +1,9 @@
 # VS solution
 Ray_tracing_sln/
 
+# every .png images of the project
+*.png
+
 # Prerequisites
 *.d
 
