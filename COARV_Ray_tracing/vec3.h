@@ -85,7 +85,7 @@ public:
 
 };
 
-#endif // !VEC3_H
+
 
 // Overload of the input >> operator
 inline istream& operator >>(istream& is, vec3& t) {
@@ -143,3 +143,6 @@ inline vec3 cross(const vec3& v1, const vec3& v2) {
 inline vec3 unit_vector(vec3 v) {
 	return v / v.length();
 }
+
+
+#endif // !VEC3_H
