@@ -5,11 +5,25 @@
 #include "ray.h"
 using namespace std;
 
+// Function to detect if a ray hits a sphere
+bool hit_sphere(const vec3& center, float radius, const ray& r) {
+    vec3 oc = r.origin() - center;
+    float a = dot(r.direction(), r.direction());
+    float b = 2.0 * dot(oc, r.direction());
+    float c = dot(oc, oc) - radius * radius;
+    float discriminant = b * b - 4 * a * c;
+    return (discriminant > 0);
+}
 
-
-// Function that blends white and blue depending on the position of the coordinate
+// Function that return the color of the image depending of the ray in argument
 vec3 color(const ray& r) {
-    // Else we return the same linear blend as before.
+
+    // IF the sphere in (0.0, 0.0, -1.0) is hit the color returned is red
+    if (hit_sphere(vec3(0.0, 0.0, -1.0), 0.5, r)) {
+        return vec3(1, 0, 0);
+    }
+
+    // Else we return the ch3 white-blue linear blend 
     vec3 unit_direction = unit_vector(r.direction());
     float t = 0.5 * (unit_direction.y() + 1.0);
     return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
@@ -18,7 +32,7 @@ vec3 color(const ray& r) {
 int main() {
     int nx = 400; // Image width
     int ny = 200; // Image height
-    string output_name = "ch3";
+    string output_name = "ch4";
 
     ofstream fichier("../../Images/" + output_name + ".ppm"); // Open a file in writing mode
 
