@@ -7,7 +7,7 @@
 
 #include "sphere.h"
 #include "hitable_list.h"
-//#include "camera.h"
+#include "camera.h"
 using namespace std;
 
 
@@ -30,8 +30,8 @@ vec3 color(const ray& r, hitable *world) {
 int main() {
     int nx = 400; // Image width
     int ny = 200; // Image height
-    //int ns = 100;
-    string output_name = "ch5_two_spheres";
+    int ns = 100;
+    string output_name = "ch6";
 
     ofstream fichier("../../Images/" + output_name + ".ppm"); // Open a file in writing mode
 
@@ -44,12 +44,6 @@ int main() {
     fichier << "P3\n" << nx << " " << ny << "\n255\n";
       
 
-    // Defining the corner of the image, the directions and the origin
-    vec3 lower_left_corner(-2.0, -1.0, -1.0);
-    vec3 horizontal(4.0, 0.0, 0.0);
-    vec3 vertical(0.0, 2.0, 0.0);
-    vec3 origin(0.0, 0.0, 0.0);
-
     // We define the objects in the world in the hitable_list
     hitable *list[2];
     list[0] = new sphere(vec3(0.0, 0.0, -1.0), 0.5);
@@ -57,31 +51,34 @@ int main() {
     hitable *world = new hitable_list(list, 2);
 
     // We instantiate the camera
-    //camera cam;
+    camera cam;
 
     // We initiate a random generator
-    //random_device rd;
-    //mt19937 gen(rd()); // Mersenne Twister generator
-    //uniform_real_distribution<float> dist(0.0, 1.0);
+    random_device rd;
+    mt19937 gen(rd()); // Mersenne Twister generator
+    uniform_real_distribution<float> dist(0.0, 1.0);
+
+    
 
     // We generate the image
     for (int j = ny - 1; j >= 0; j--) {
         for (int i = 0; i < nx; i++) {
-            //vec3 col(0.0, 0.0, 0.0);
-            //for (int s = 0; s < ns; s++) {
+            vec3 col(0.0, 0.0, 0.0);
+            for (int s = 0; s < ns; s++) {
 
                 // We generate the u,v parameters of direction of the ray
                 // We add a random factor to make an antialiasing (blur effect)
-                float u = float(i) / float(nx);
-                float v = float(j) / float(ny);
+                float u = float(i + dist(gen)) / float(nx);
+                float v = float(j + dist(gen)) / float(ny);
 
                 // We create the ray originating from 0,0,0 and going to u,v
-                //ray r = cam.get_ray(u, v);
-                ray r(origin, lower_left_corner + u * horizontal + v * vertical);
+                ray r = cam.get_ray(u, v);
+                //ray r(origin, lower_left_corner + u * horizontal + v * vertical);
                 vec3 p = r.point_at_parameter(2.0);
-                vec3 col = color(r, world);
-            //}
-            //col /= float(ns);
+                col += color(r, world);
+
+            }
+            col /= float(ns);
             int ir = int(255.99 * col.r());
             int ig = int(255.99 * col.g());
             int ib = int(255.99 * col.b());
@@ -95,5 +92,6 @@ int main() {
     fichier.close(); // We close the ppm file
 
     cout << "Image is saved under '" + output_name + ".ppm'" << endl;
+
     return 0;
 }
