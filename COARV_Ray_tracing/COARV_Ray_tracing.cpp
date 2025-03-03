@@ -10,14 +10,27 @@
 #include "camera.h"
 using namespace std;
 
+// We initiate a random generator
+random_device rd;
+mt19937 gen(rd()); // Mersenne Twister generator
+uniform_real_distribution<float> dist(0.0, 1.0);
+
+vec3 random_in_unit_sphere() {
+    vec3 p;
+    do {
+        p = 2.0 * vec3(dist(gen), dist(gen), dist(gen)) - vec3(1.0, 1.0, 1.0);
+    } while (p.squared_length() >= 1.0);
+    return p;
+}
 
 // Function that return the color of the image depending of the ray in argument
 vec3 color(const ray& r, hitable *world) {
     hit_record rec;
 
     // We test if anything in the world is hit by the ray
-    if (world->hit(r, 0.0, numeric_limits<float>::max(), rec)) {
-        return 0.5 * vec3(rec.normal.x() + 1.0, rec.normal.y() + 1.0, rec.normal.z() + 1.0);
+    if (world->hit(r, 0.001, numeric_limits<float>::max(), rec)) {
+        vec3 target = rec.p + rec.normal + random_in_unit_sphere();
+        return 0.5 * color( ray(rec.p, target-rec.p), world);
     }
     else {
         // Else we return the ch3 white-blue linear blend 
@@ -31,7 +44,7 @@ int main() {
     int nx = 400; // Image width
     int ny = 200; // Image height
     int ns = 100;
-    string output_name = "ch6";
+    string output_name = "ch7";
 
     ofstream fichier("../../Images/" + output_name + ".ppm"); // Open a file in writing mode
 
@@ -52,11 +65,6 @@ int main() {
 
     // We instantiate the camera
     camera cam;
-
-    // We initiate a random generator
-    random_device rd;
-    mt19937 gen(rd()); // Mersenne Twister generator
-    uniform_real_distribution<float> dist(0.0, 1.0);
 
     
 
@@ -79,6 +87,8 @@ int main() {
 
             }
             col /= float(ns);
+            col = vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
+
             int ir = int(255.99 * col.r());
             int ig = int(255.99 * col.g());
             int ib = int(255.99 * col.b());
