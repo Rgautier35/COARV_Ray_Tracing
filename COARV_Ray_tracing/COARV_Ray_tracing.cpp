@@ -5,32 +5,35 @@
 #include <limits>
 #include <random>
 
+
 #include "sphere.h"
 #include "hitable_list.h"
 #include "camera.h"
+#include "material.h"
 using namespace std;
 
 // We initiate a random generator
-random_device rd;
-mt19937 gen(rd()); // Mersenne Twister generator
-uniform_real_distribution<float> dist(0.0, 1.0);
+//random_device rd;
+//mt19937 gen(rd()); // Mersenne Twister generator
+//uniform_real_distribution<float> dist(0.0, 1.0);
 
-vec3 random_in_unit_sphere() {
-    vec3 p;
-    do {
-        p = 2.0 * vec3(dist(gen), dist(gen), dist(gen)) - vec3(1.0, 1.0, 1.0);
-    } while (p.squared_length() >= 1.0);
-    return p;
-}
+
 
 // Function that return the color of the image depending of the ray in argument
-vec3 color(const ray& r, hitable *world) {
+vec3 color(const ray& r, hitable *world, int depth) {
     hit_record rec;
 
     // We test if anything in the world is hit by the ray
     if (world->hit(r, 0.001, numeric_limits<float>::max(), rec)) {
-        vec3 target = rec.p + rec.normal + random_in_unit_sphere();
-        return 0.5 * color( ray(rec.p, target-rec.p), world);
+        ray scattered;
+        vec3 attenuation;
+        if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
+            // If there is scatter, we continue a ray tracing recursively with limit condition of 50 depth
+            return attenuation * color(scattered, world, depth + 1);
+        }
+        else {
+            return vec3(0.0, 0.0, 0.0);
+        }
     }
     else {
         // Else we return the ch3 white-blue linear blend 
@@ -44,7 +47,7 @@ int main() {
     int nx = 400; // Image width
     int ny = 200; // Image height
     int ns = 100;
-    string output_name = "ch7";
+    string output_name = "ch8";
 
     ofstream fichier("../../Images/" + output_name + ".ppm"); // Open a file in writing mode
 
@@ -58,10 +61,12 @@ int main() {
       
 
     // We define the objects in the world in the hitable_list
-    hitable *list[2];
-    list[0] = new sphere(vec3(0.0, 0.0, -1.0), 0.5);
-    list[1] = new sphere(vec3(0.0, -100.5, -1), 100);
-    hitable *world = new hitable_list(list, 2);
+    hitable *list[4];
+    list[0] = new sphere(vec3(0.0, 0.0, -1.0), 0.5, new lambertian( vec3(0.8, 0.3, 0.3)));
+    list[1] = new sphere(vec3(0.0, -100.5, -1), 100, new lambertian(vec3(0.8, 0.8, 0.0)));
+    list[2] = new sphere(vec3(1.0, 0.0, -1.0), 0.5, new metal(vec3(0.8, 0.6, 0.2)));
+    list[3] = new sphere(vec3(-1.0, 0.0, -1.0), 0.5, new metal(vec3(0.8, 0.8, 0.8)));
+    hitable *world = new hitable_list(list, 4);
 
     // We instantiate the camera
     camera cam;
@@ -83,7 +88,7 @@ int main() {
                 ray r = cam.get_ray(u, v);
                 //ray r(origin, lower_left_corner + u * horizontal + v * vertical);
                 vec3 p = r.point_at_parameter(2.0);
-                col += color(r, world);
+                col += color(r, world,0);
 
             }
             col /= float(ns);
