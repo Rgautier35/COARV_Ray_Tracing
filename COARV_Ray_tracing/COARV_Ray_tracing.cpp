@@ -4,7 +4,7 @@
 #include <string>
 #include <limits>
 #include <random>
-
+#include <cfloat>
 
 #include "sphere.h"
 #include "hitable_list.h"
@@ -21,16 +21,18 @@ using namespace std;
 
 // Function that return the color of the image depending of the ray in argument
 vec3 color(const ray& r, hitable *world, int depth) {
+
     hit_record rec;
 
     // We test if anything in the world is hit by the ray
-    if (world->hit(r, 0.001, numeric_limits<float>::max(), rec)) {
+    if (world->hit(r, 0.001, /*FLT_MAX*/ numeric_limits<float>::max(), rec)) {
         ray scattered;
         vec3 attenuation;
-        if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
-            // If there is scatter, we continue a ray tracing recursively with limit condition of 50 depth
+        if (depth < 10 && rec.mat_ptr->scatter(r, rec, attenuation, scattered) ) {
+            // If there is scatter, we continue a ray tracing recursively with limit condition of depth
             return attenuation * color(scattered, world, depth + 1);
         }
+        // No scatter, pure absorption.
         else {
             return vec3(0.0, 0.0, 0.0);
         }
@@ -59,16 +61,21 @@ int main() {
     // We write the header of the ppm file (ASCII P3 format)
     fichier << "P3\n" << nx << " " << ny << "\n255\n";
       
+    // We define the materials we want
+    //auto sphere_mat1 = make_shared<lambertian>(vec3(0.8, 0.3, 0.3));
+    //auto sphere_mat2 = make_shared<metal>(vec3(0.8, 0.8, 0.0));
+    //auto sphere_mat3 = make_shared<lambertian>(vec3(0.8, 0.6, 0.2));
+    //auto sphere_mat4 = make_shared<lambertian>(vec3(0.8, 0.8, 0.8));
 
     // We define the objects in the world in the hitable_list
     hitable *list[4];
-    list[0] = new sphere(vec3(0.0, 0.0, -1.0), 0.5, new lambertian( vec3(0.8, 0.3, 0.3)));
-    list[1] = new sphere(vec3(0.0, -100.5, -1), 100, new lambertian(vec3(0.8, 0.8, 0.0)));
-    list[2] = new sphere(vec3(1.0, 0.0, -1.0), 0.5, new metal(vec3(0.8, 0.6, 0.2)));
-    list[3] = new sphere(vec3(-1.0, 0.0, -1.0), 0.5, new metal(vec3(0.8, 0.8, 0.8)));
+    list[0] = new sphere(vec3(0.0, 0.0, -1.0), 0.5, new lambertian( vec3(0.8, 0.3, 0.3) ) );
+    list[1] = new sphere(vec3(0.0, -100.5, -1), 100, new lambertian( vec3(0.8, 0.8, 0.0) ) );
+    list[2] = new sphere(vec3(1.0, 0.0, -1.0), 0.5, new metal( vec3(0.8, 0.6, 0.2), 0.3 ) );
+    list[3] = new sphere(vec3(-1.0, 0.0, -1.0), 0.5, new metal( vec3(0.8, 0.8, 0.8), 0.5 ) );
     hitable *world = new hitable_list(list, 4);
 
-    // We instantiate the camera
+    // We initialize the camera
     camera cam;
 
     

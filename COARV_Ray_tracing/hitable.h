@@ -6,6 +6,7 @@
 class material;
 
 struct hit_record {
+public: 
 	float t;
 	vec3 p;
 	vec3 normal;

@@ -7,13 +7,9 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
-#include <random>
 using namespace std;
 
-// We initiate a random generator
-random_device rd;
-mt19937 gen(rd()); // Mersenne Twister generator
-uniform_real_distribution<float> dist(0.0, 1.0);
+
 
 class vec3 {
 public:
@@ -148,14 +144,6 @@ inline vec3 cross(const vec3& v1, const vec3& v2) {
 
 inline vec3 unit_vector(vec3 v) {
 	return v / v.length();
-}
-
-vec3 random_in_unit_sphere() {
-	vec3 p;
-	do {
-		p = 2.0 * vec3(dist(gen), dist(gen), dist(gen)) - vec3(1.0, 1.0, 1.0);
-	} while (p.squared_length() >= 1.0);
-	return p;
 }
 
 #endif // !VEC3_H

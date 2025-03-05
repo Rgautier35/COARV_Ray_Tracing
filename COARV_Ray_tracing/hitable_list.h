@@ -5,6 +5,7 @@
 
 class hitable_list : public hitable {
 public:
+
 	hitable_list() {}
 	hitable_list(hitable **l, int n) { list = l; list_size = n; }
 	virtual bool hit(const ray& r, float t_min, float t_max, hit_record& rec) const;
@@ -21,6 +22,7 @@ bool hitable_list::hit(const ray& r, float t_min, float t_max, hit_record& rec) 
 
 	for (int i = 0; i < list_size; i++) {
 		if (list[i]->hit(r, t_min, closest_so_far, temp_rec)) {
+
 			// If anything on the list hits, the function will return true
 			hit_anything = true;
 			// If anything is hit within the range of t, we change the closest and the hit_record.
